@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend App</title>
+
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+#data-form {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#data-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#data-form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+#data-form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#data-form button:hover {
+    background-color: #45a049;
+}
+
+#data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#data-table th, #data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#data-table th {
+    background-color: #4CAF50;
+    color: white;
+}
+</style>
+</head>
+<body>
+    <h1>Data from Django Rest Framework API</h1>
+
+    <!-- Form to input new data -->
+    <form id="data-form">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+
+        <button type="submit">Add Data</button>
+    </form>
+
+    <!-- Display data in a table -->
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody id="data-body"></tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to handle form submission
+            const handleFormSubmit = (event) => {
+                event.preventDefault();
+
+                // Get form data
+                const formData = new FormData(event.target);
+                const title = formData.get('title');
+                const description = formData.get('description');
+
+                // Make a POST request to your Django Rest Framework API endpoint to add new data
+                fetch('http://localhost:8000/api/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, description }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update the HTML page with the received data in a table
+                    const dataBody = document.getElementById('data-body');
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${data.id}</td><td>${data.title}</td><td>${data.description}</td>`;
+                    dataBody.appendChild(row);
+
+                    // Clear the form inputs
+                    event.target.reset();
+                })
+                .catch(error => console.error('Error adding data:', error));
+            };
+
+            // Attach form submission event listener
+            const dataForm = document.getElementById('data-form');
+            dataForm.addEventListener('submit', handleFormSubmit);
+
+            // Fetch and display existing data
+            fetch('http://localhost:8000/api/get')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the HTML page with the received data in a table
+                    const dataBody = document.getElementById('data-body');
+
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${item.id}</td><td>${item.title}</td><td>${item.description}</td>`;
+                        dataBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+</body>
+</html>
